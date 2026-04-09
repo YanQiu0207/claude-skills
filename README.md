@@ -49,7 +49,16 @@ md-fmt
 - `md-fmt` 依赖 `md-zh` 和 `md-img-local`，使用 `md-fmt` 前需同时安装这两个 skill
 - 其他 skill 可独立使用
 
+## 开发设置
+
+克隆后启用 pre-commit hook（防止个人敏感信息意外提交）：
+
+```bash
+git config core.hooksPath .githooks
+cp .githooks/sensitive-patterns.example .githooks/sensitive-patterns
+# 编辑 sensitive-patterns，填入你的个人信息模式
+```
+
 ## 使用注意
 
 - **resume-reviewing**：SKILL.md 中包含个人求职背景信息，使用前请根据自己情况修改
-- **skill-rename**：脚本中的 skills 目录路径可能需要根据系统调整
