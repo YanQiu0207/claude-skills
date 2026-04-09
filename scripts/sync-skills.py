@@ -16,6 +16,7 @@
 import logging
 import shutil
 import subprocess
+from datetime import datetime, timedelta
 from pathlib import Path
 
 SKILLS_DIR = Path.home() / ".claude" / "skills"
@@ -81,7 +82,7 @@ def git_commit_and_push(synced: list[str], logger: logging.Logger):
     if result.returncode == 0:
         return False
 
-    msg = f"同步 {len(synced)} 个文件\n\n" + "\n".join(synced)
+    msg = f"脚本自动同步 {len(synced)} 个文件\n\n" + "\n".join(synced)
     subprocess.run(["git", "commit", "-m", msg], cwd=REPO_DIR, check=True)
 
     result = subprocess.run(
@@ -95,8 +96,31 @@ def git_commit_and_push(synced: list[str], logger: logging.Logger):
     return True
 
 
+def cleanup_old_logs(logger: logging.Logger):
+    """删除一个月前的日志。"""
+    if not LOG_FILE.exists():
+        return
+    cutoff = datetime.now() - timedelta(days=30)
+    lines = LOG_FILE.read_text(encoding="utf-8").splitlines()
+    # 日志按时间有序，从末尾往前找到最后一条过期的行
+    last_expired = -1
+    for i in range(len(lines) - 1, -1, -1):
+        try:
+            ts = datetime.strptime(lines[i][:19], "%Y-%m-%d %H:%M:%S")
+            if ts < cutoff:
+                last_expired = i
+                break
+        except (ValueError, IndexError):
+            continue
+    if last_expired >= 0:
+        kept = lines[last_expired + 1:]
+        LOG_FILE.write_text("\n".join(kept) + "\n", encoding="utf-8")
+        logger.info("已清理 %d 条过期日志（超过 30 天）", last_expired + 1)
+
+
 def main():
     logger = setup_logging()
+    cleanup_old_logs(logger)
     logger.info("===== 开始同步 =====")
     logger.info("源: %s", SKILLS_DIR)
     logger.info("目标: %s", REPO_DIR)
