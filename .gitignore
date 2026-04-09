@@ -2,3 +2,4 @@
 __pycache__/
 *.pyc
 .githooks/sensitive-patterns
+scripts/sync.log
