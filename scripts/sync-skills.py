@@ -7,7 +7,7 @@
 - 仓库文件更新 -> 不覆盖，记录冲突
 - 源有新技能/新文件 -> 复制到仓库
 - 不删除仓库中已有的文件
-- 同步后自动 git commit（有变更时）
+- 同步后自动 git commit + push（有变更时）
 - 无变更时也记录日志
 
 通过 Windows 任务计划程序定时调用，每次执行一次后退出。
@@ -74,7 +74,7 @@ def sync() -> tuple[list[str], list[str]]:
     return synced, conflicts
 
 
-def git_commit(synced: list[str]):
+def git_commit_and_push(synced: list[str], logger: logging.Logger):
     subprocess.run(["git", "add", "-A"], cwd=REPO_DIR, check=True)
 
     result = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=REPO_DIR)
@@ -83,6 +83,15 @@ def git_commit(synced: list[str]):
 
     msg = f"同步 {len(synced)} 个文件\n\n" + "\n".join(synced)
     subprocess.run(["git", "commit", "-m", msg], cwd=REPO_DIR, check=True)
+
+    result = subprocess.run(
+        ["git", "push"], cwd=REPO_DIR, capture_output=True, text=True,
+    )
+    if result.returncode == 0:
+        logger.info("已推送到远程仓库")
+    else:
+        logger.warning("推送失败: %s", result.stderr.strip())
+
     return True
 
 
@@ -99,7 +108,7 @@ def main():
             logger.info("同步 %d 个文件:", len(synced))
             for f in synced:
                 logger.info("  已同步: %s", f)
-            if git_commit(synced):
+            if git_commit_and_push(synced, logger):
                 logger.info("已提交到 git（%d 个文件）", len(synced))
         else:
             logger.info("无变更，跳过提交")
