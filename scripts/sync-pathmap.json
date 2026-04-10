@@ -7,6 +7,10 @@
     {
       "source": "~/.claude/agents",
       "target": "agents"
+    },
+    {
+      "source": "~/.claude/CLAUDE.md",
+      "target": "CLAUDE.md"
     }
   ]
 }

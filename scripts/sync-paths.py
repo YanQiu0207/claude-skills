@@ -258,17 +258,19 @@ def update_readme_with_claude(logger: logging.Logger) -> None:
     )
 
     try:
+        logger.info("正在尝试通过 Claude Code 更新 README.md")
         result = subprocess.run(
             [
                 "claude",
-                "-p", prompt,
+                "--headless",
                 "--model", "sonnet",
                 "--allowedTools", "Read,Edit,Glob",
             ],
+            input=json.dumps({"type": "user_message", "message": prompt}),
             cwd=REPO_DIR,
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=180,
         )
         if result.returncode == 0:
             logger.info("已通过 Claude Code 更新 README.md")
