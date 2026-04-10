@@ -2,12 +2,12 @@
 name: md-img-local
 description: 将Markdown文件中的网络图片自动下载到本地assets目录，添加唯一前缀避免重名冲突，自动替换原文件中的图片链接为本地相对路径。适用于用户要求"下载markdown图片"、"图片本地化"、"替换网络图片链接"等场景。
 allowed-tools:
-  - Read
-  - Edit
-  - Bash
   - Grep
   - Glob
+  - Read
+  - Edit
   - Write
+  - Bash
 model: haiku
 ---
 

@@ -20,4 +20,5 @@
 
 \## 创建技能的规则
 \- 创建新的文件处理类技能时，主动询问用户是否需要支持批量（多文件）执行
-\- 如果需要批量支持，先读取 `~/.claude/claude_ref/claude-code-guide.md`，按照其中的三层架构设计模式来实现
+\- 如果需要批量支持，先用 Skill 工具调用 `cc-adv-guide`，按照其中的三层架构设计模式来实现
+\- 回答 skills、agents 相关问题时，先用 Skill 工具调用 `cc-adv-guide` 获取参考知识
