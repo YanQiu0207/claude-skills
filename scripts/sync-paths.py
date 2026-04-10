@@ -9,7 +9,7 @@
 - 如果源文件比目标文件新，则覆盖目标文件。
 - 如果目标文件比源文件新，则保留目标文件并记录为冲突。
 - 如果源侧存在新文件，则复制到仓库。
-- 不删除仅存在于仓库目标侧的文件。
+- 如果源侧文件已删除，则同步删除目标侧对应的文件。
 - 发生变更时，自动执行 git commit + push。
 - 没有变更时，也会照常写入日志。
 """
@@ -165,7 +165,7 @@ def sync_one_file(source_file: Path, target_file: Path) -> tuple[bool, bool]:
     return False, False
 
 
-def sync_directory(source_dir: Path, target_dir: Path) -> tuple[list[str], list[str]]:
+def sync_directory(source_dir: Path, target_dir: Path) -> tuple[list[str], list[str], list[str]]:
     synced: list[str] = []
     conflicts: list[str] = []
 
@@ -186,20 +186,36 @@ def sync_directory(source_dir: Path, target_dir: Path) -> tuple[list[str], list[
         elif is_conflict:
             conflicts.append(label)
 
-    return synced, conflicts
+    deleted: list[str] = []
+    if target_dir.exists():
+        for target_file in sorted(target_dir.rglob("*"), key=lambda item: item.as_posix()):
+            if not target_file.is_file() or should_skip_file(target_file):
+                continue
+            relative_path = target_file.relative_to(target_dir)
+            source_file = source_dir / relative_path
+            if not source_file.exists():
+                target_file.unlink()
+                deleted.append(format_target_label(target_file))
+
+        for dir_path in sorted(target_dir.rglob("*"), key=lambda item: item.as_posix(), reverse=True):
+            if dir_path.is_dir() and not any(dir_path.iterdir()):
+                dir_path.rmdir()
+
+    return synced, conflicts, deleted
 
 
-def sync_file(source_file: Path, target_file: Path) -> tuple[list[str], list[str]]:
+def sync_file(source_file: Path, target_file: Path) -> tuple[list[str], list[str], list[str]]:
     is_synced, is_conflict = sync_one_file(source_file, target_file)
     label = format_target_label(target_file)
     synced = [label] if is_synced else []
     conflicts = [label] if is_conflict else []
-    return synced, conflicts
+    return synced, conflicts, []
 
 
-def sync_mappings(mappings: list[SyncMapping], logger: logging.Logger) -> tuple[list[str], list[str]]:
+def sync_mappings(mappings: list[SyncMapping], logger: logging.Logger) -> tuple[list[str], list[str], list[str]]:
     synced: list[str] = []
     conflicts: list[str] = []
+    deleted: list[str] = []
 
     for index, mapping in enumerate(mappings, start=1):
         if not mapping.enabled:
@@ -228,17 +244,18 @@ def sync_mappings(mappings: list[SyncMapping], logger: logging.Logger) -> tuple[
             continue
 
         if mapping.source.is_file():
-            mapping_synced, mapping_conflicts = sync_file(mapping.source, mapping.target)
+            mapping_synced, mapping_conflicts, mapping_deleted = sync_file(mapping.source, mapping.target)
         elif mapping.source.is_dir():
-            mapping_synced, mapping_conflicts = sync_directory(mapping.source, mapping.target)
+            mapping_synced, mapping_conflicts, mapping_deleted = sync_directory(mapping.source, mapping.target)
         else:
             logger.warning("不支持的源路径类型，已跳过: %s", mapping.source)
             continue
 
         synced.extend(mapping_synced)
         conflicts.extend(mapping_conflicts)
+        deleted.extend(mapping_deleted)
 
-    return synced, conflicts
+    return synced, conflicts, deleted
 
 
 def update_readme_with_claude(logger: logging.Logger) -> None:
@@ -283,14 +300,17 @@ def update_readme_with_claude(logger: logging.Logger) -> None:
         logger.warning("Claude Code 更新 README 异常，跳过", exc_info=True)
 
 
-def git_commit_and_push(synced: list[str], logger: logging.Logger) -> bool:
+def git_commit_and_push(synced: list[str], deleted: list[str], logger: logging.Logger) -> bool:
     subprocess.run(["git", "add", "-A"], cwd=REPO_DIR, check=True)
 
     result = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=REPO_DIR)
     if result.returncode == 0:
         return False
 
-    message = f"脚本按映射自动同步 {len(synced)} 个文件\n\n" + "\n".join(synced)
+    changed = len(synced) + len(deleted)
+    details: list[str] = list(synced)
+    details.extend(f"[删除] {item}" for item in deleted)
+    message = f"脚本按映射自动同步 {changed} 个文件\n\n" + "\n".join(details)
     subprocess.run(["git", "commit", "-m", message], cwd=REPO_DIR, check=True)
 
     result = subprocess.run(
@@ -348,17 +368,22 @@ def main() -> None:
             len(mappings) - enabled_count,
         )
 
-        synced, conflicts = sync_mappings(mappings, logger)
+        synced, conflicts, deleted = sync_mappings(mappings, logger)
 
         if synced:
             update_readme_with_claude(logger)
 
-        if synced:
-            logger.info("已同步 %d 个文件", len(synced))
-            for item in synced:
-                logger.info("  已同步: %s", item)
-            if git_commit_and_push(synced, logger):
-                logger.info("已提交到 git（%d 个文件）", len(synced))
+        if synced or deleted:
+            if synced:
+                logger.info("已同步 %d 个文件", len(synced))
+                for item in synced:
+                    logger.info("  已同步: %s", item)
+            if deleted:
+                logger.info("已删除 %d 个文件", len(deleted))
+                for item in deleted:
+                    logger.info("  已删除: %s", item)
+            if git_commit_and_push(synced, deleted, logger):
+                logger.info("已提交到 git（%d 个文件）", len(synced) + len(deleted))
         else:
             logger.info("没有变更，跳过 git 提交")
 
