@@ -2,7 +2,6 @@
 name: resume-reviewing
 description: 用于检查、润色和优化简历内容，提升表达质量。它不仅能发现简历中的常见问题，还能根据目标岗位对内容进行针对性改进，让简历更容易突出个人优势和核心成果。
 argument-hint: "[简历文件名]"
-disable-model-invocation: true
 ---
 
 # 角色设定
