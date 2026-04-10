@@ -1,6 +1,7 @@
 ---
 name: pdf2md
 description: 将 PDF 忠实转换为 Markdown，最大限度保留原文内容、顺序、层级、列表、链接、图示位置与页面信息。当用户要求把 PDF 转成 Markdown、要求"原汁原味""忠实还原""不要总结""不要改写"时使用此 Skill。即使用户只是简单地说"把这个 PDF 转成 md"，也应使用此 Skill，因为忠实还原是 PDF 转 Markdown 的默认期望。
+argument-hint: "[PDF 文件路径]"
 model: sonnet
 ---
 

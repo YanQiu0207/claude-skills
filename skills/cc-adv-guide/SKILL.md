@@ -3,7 +3,7 @@ name: cc-adv-guide
 description: |
   【知识库】Claude Code 进阶指南，包含 Skills 与 Agents 的高级用法和设计模式。
   当大模型需要创建或回答 skills、agents 相关内容时启用。
-type: knowledge
+user-invocable: false
 ---
 
 # Claude Code 进阶指南：Skills 与 Agents
@@ -192,3 +192,31 @@ permissionMode: bypassPermissions
 ### 实际案例
 
 `batch-md-fmt`（调度层）→ `md-fmt-worker`（配置层）→ `md-fmt`（执行层）→ `md-img-local`（下游 skill）
+
+---
+
+## Skill 字段参考与官方最佳实践
+
+当需要了解以下内容时，请读取 [reference/skill-guide.md](reference/skill-guide.md)：
+
+- Skill YAML frontmatter 的完整字段列表及各字段含义
+- 字符串替换变量（`$ARGUMENTS`、`${CLAUDE_SKILL_DIR}` 等）
+- 调用控制（`disable-model-invocation` / `user-invocable` 的组合效果）
+- 动态上下文注入（`` !`command` `` 语法）
+- description 写法、文件组织、渐进式披露等最佳实践
+- 官方示例（参考知识类、手动触发、工具预授权、子代理 fork、位置参数、脚本捆绑等）
+- 技能存放位置与优先级规则
+
+## Agent 定义文件参考与官方最佳实践
+
+当需要了解以下内容时，请读取 [reference/agent-guide.md](reference/agent-guide.md)：
+
+- Agent `.md` 文件的完整 frontmatter 字段列表及各字段含义（`name`、`description`、`tools`、`model`、`permissionMode`、`skills`、`hooks`、`mcpServers`、`memory` 等）
+- 工具权限控制（`tools` 白名单、`disallowedTools` 黑名单、`Agent()` 语法限制可派生 subagent）
+- 模型选择与解析优先级
+- 依赖注入（`skills`、`mcpServers`）
+- 生命周期与行为控制（`hooks`、`memory`、`background`、`isolation`、`initialPrompt`）
+- 存储位置与优先级规则
+- 官方最佳实践（职责单一、最小权限、description 写法、成本控制等）
+- 官方示例（只读审查、调试修复、领域专用、Hook 验证、MCP 集成、Coordinator、持久记忆等 7 个完整示例）
+- 关键限制与注意事项

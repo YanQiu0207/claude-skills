@@ -1,6 +1,8 @@
 ---
 name: skill-rename
 description: 为 skill 改名，同时自动检查和更新所有依赖关系。当需要重命名一个 skill 时使用此技能。功能包括：1) 扫描 skill 结构找出名称和依赖；2) 扫描所有其他 skill 文件，找出对该 skill 的引用；3) 批量更新引用；4) 验证 YAML frontmatter 有效性；5) 生成完整的变更报告。
+argument-hint: "[旧名称] [新名称]"
+disable-model-invocation: true
 model: sonnet
 ---
 

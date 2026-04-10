@@ -1,6 +1,8 @@
 ---
 name: skill-del
 description: 安全删除 skill，自动扫描并处理所有依赖关系（其他 skill、agent 中的引用），确保删除后系统一致。当需要删除一个 skill 时使用此技能。
+argument-hint: "[技能名称]"
+disable-model-invocation: true
 model: sonnet
 ---
 

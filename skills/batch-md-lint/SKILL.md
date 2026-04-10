@@ -2,6 +2,7 @@
 name: batch-md-lint
 description: |
   批量检查多个 Markdown 文件的排版规范。接收多个文件路径或通配符，对每个文件并行启动后台 agent 调用 md-lint 技能进行检查和修复，最后汇总输出结果。
+argument-hint: "[文件路径或通配符]"
 model: sonnet
 ---
 

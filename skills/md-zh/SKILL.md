@@ -2,7 +2,7 @@
 name: md-zh
 description: |
   【知识库】中文 Markdown 排版规范，供 md-lint、md-fmt 等技能内部引用。包含空格、标点、全角半角、专有名词、Markdown 格式等排版规则。
-type: knowledge
+user-invocable: false
 ---
 
 # 中文文案排版指南

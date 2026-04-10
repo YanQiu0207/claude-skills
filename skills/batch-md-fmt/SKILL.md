@@ -2,6 +2,7 @@
 name: batch-md-fmt
 description: |
   批量对多个 Markdown 文件进行一站式标准化：先排版规范化，再网络图片本地化。当用户提供多个文件路径或使用通配符（如 `*.md`、`**/*.md`）进行 markdown 标准化时触发。
+argument-hint: "[文件路径或通配符]"
 model: sonnet
 ---
 
