@@ -7,6 +7,7 @@ allowed-tools:
   - Bash
   - Grep
   - Glob
+  - Write
 ---
 
 > **⚠ 并发安全**：本技能被 `batch-md-fmt` 通过多个并行 agent 同时调用，每个 agent 处理不同文件。修改本技能时，必须确保不引入共享状态（如全局临时文件、固定名称的中间产物等），否则并发执行会产生冲突。

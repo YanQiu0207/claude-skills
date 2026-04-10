@@ -10,6 +10,7 @@ allowed-tools:
   - Skill
   - Grep
   - Glob
+  - Write
 ---
 
 当此 skill 生效时，回答第一行固定写：Using skill: md-fmt
