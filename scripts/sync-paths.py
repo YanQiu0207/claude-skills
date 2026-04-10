@@ -370,7 +370,7 @@ def main() -> None:
 
         synced, conflicts, deleted = sync_mappings(mappings, logger)
 
-        if synced:
+        if synced or deleted:
             update_readme_with_claude(logger)
 
         if synced or deleted:

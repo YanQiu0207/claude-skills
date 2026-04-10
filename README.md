@@ -8,10 +8,8 @@
 |-------|------|
 | **batch-md-fmt** | 批量对多个 Markdown 文件进行一站式标准化：先排版规范化，再网络图片本地化。 |
 | **batch-md-lint** | 批量检查多个 Markdown 文件的排版规范。 |
-| **batch-skill-pattern** | 批量技能的三层架构设计模式参考。 |
 | **md-fmt** | 对单个 Markdown 文件进行一站式标准化：先排版规范化，再网络图片本地化。 |
 | **md-img-local** | 将Markdown文件中的网络图片自动下载到本地assets目录，添加唯一前缀避免重名冲突，自动替换原文件中的图片链接为本地相对路径。 |
-| **md-zh** | markdown文档的排版规范。 |
 | **pdf2md** | 将 PDF 忠实转换为 Markdown，最大限度保留原文内容、顺序、层级、列表、链接、图示位置与页面信息。 |
 | **resume-reviewing** | 用于检查、润色和优化简历内容，提升表达质量。 |
 | **skill-del** | 安全删除 skill，自动扫描并处理所有依赖关系（其他 skill、agent 中的引用），确保删除后系统一致。 |
@@ -115,7 +113,7 @@ cp .githooks/sensitive-patterns.example .githooks/sensitive-patterns
 
 - 源文件比目标文件新时，覆盖目标文件。
 - 目标文件比源文件新时，不覆盖，记为冲突。
-- 仅做单向同步，不删除仓库中已有但源侧不存在的文件。
+- 源侧文件已删除时，同步删除目标侧对应的文件。
 - 有变更时自动执行 `git add`、`git commit`、`git push`。
 
 运行方式：
