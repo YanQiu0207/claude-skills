@@ -13,7 +13,9 @@ tools:
   - WebFetch
 skills:
   - md-fmt
+  - md-lint
   - md-img-local
+  - md-zh
 permissionMode: bypassPermissions
 model: haiku
 ---

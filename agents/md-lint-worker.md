@@ -10,6 +10,7 @@ tools:
   - Skill
 skills:
   - md-lint
+  - md-zh
 permissionMode: bypassPermissions
 model: haiku
 ---

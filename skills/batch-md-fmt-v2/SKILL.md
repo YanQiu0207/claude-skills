@@ -26,6 +26,7 @@ model: sonnet
 Agent({
   description: "md-fmt: {文件名}",
   run_in_background: true,
+  mode: "bypassPermissions",
   prompt: "请使用 Skill 工具调用 md-fmt 技能，对文件 {绝对路径} 执行标准化处理。"
 })
 ```
