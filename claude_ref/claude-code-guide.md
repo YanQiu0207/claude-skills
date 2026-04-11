@@ -499,3 +499,144 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 - 需要 Claude Code v2.1.32+
 - 一个会话只能管理一个团队
 - 实验性功能，不支持 `/resume` 会话恢复
+
+## 订阅套餐与使用限制
+
+> **注意**：Anthropic 官方不公布精确 token 阈值，只承诺相对倍数。以下数字来源于第三方社区测试（2026 年 4 月），仅供参考，会随 Anthropic 调整而变化。
+
+### 套餐概览
+
+| 套餐 | 月费 | 每 5 小时窗口（估算提示数） | 估算 token 阈值 |
+| --- | --- | --- | --- |
+| Free | $0 | 2-5 条 | ~5K |
+| Pro | $20 | 10-40 条 | ~44K |
+| Max 5x | $100 | 50-200 条 | ~88K |
+| Max 20x | $200 | 200-800 条 | ~220K |
+
+提示数变化大——一条复杂长对话消耗的 token 可能是简单问题的 10 倍以上。
+
+### 每周限制（2025 年 8 月起）
+
+| 套餐 | 每周 Sonnet 时间 | 每周 Opus 时间 |
+| --- | --- | --- |
+| Pro | 40-80h | 不可用 |
+| Max 5x | 140-280h | 15-35h |
+| Max 20x | 240-480h | 24-40h |
+
+### 模型成本差异
+
+| 模型 | 输入 ($/M tokens) | 输出 ($/M tokens) | 备注 |
+| --- | --- | --- | --- |
+| Opus 4.6 | $5 | $25 | 最强但最贵，消耗配额约为 Sonnet 的 1.7 倍 |
+| Sonnet 4.6 | $3 | $15 | 性价比均衡 |
+| Haiku 4.5 | $1 | $5 | 最便宜，简单任务首选 |
+
+- **长上下文溢价**（>200K tokens）：Opus $10/$37.50，Sonnet $6/$22.50
+- **Fast 模式**：Opus 4.6 为标准费率的 6 倍
+- **Batch API**：5 折
+
+### 超额使用（Extra Usage）
+
+Pro/Max 用户达到限额后可按 API 标准费率继续使用，每日充值上限 $2,000，可设月度消费上限。
+
+### 来源
+
+- [Claude Help Center - Manage Extra Usage](https://support.claude.com/en/articles/12429409-manage-extra-usage-for-paid-claude-plans)
+- [Claude Code Limits - Portkey](https://portkey.ai/blog/claude-code-limits/)
+- [Claude Code Token Limits - Faros](https://www.faros.ai/blog/claude-code-token-limits)
+
+## 省 Token 最佳实践
+
+### 第一梯队：效果最显著
+
+#### 选对模型
+
+```
+/model    # 切换模型
+```
+
+- **Opus**：仅用于复杂多文件重构、架构决策
+- **Sonnet**：日常开发、写测试、中等复杂度
+- **Haiku**：快速查询、格式化、简单问答
+
+Max 5x 为例：Opus 周限额 15-35h，Sonnet 140-280h，差距巨大。
+
+#### 一个任务一个会话
+
+每次发消息 Claude 都会重读整个对话历史。第 1 条约 500 tokens，第 30 条可能 15,000 tokens。
+
+- 完成任务后 `/clear`
+- 不在同一会话混合不相关任务
+
+#### 主动 `/compact`
+
+上下文使用约 50% 时执行，压缩对话摘要释放空间：
+
+```
+/compact Focus on the API changes    # 可指定压缩重点
+```
+
+#### 精确的提示词
+
+| 差 | 好 |
+| --- | --- |
+| "修一下登录 bug" | "用户反馈 session 过期后登录失败，检查 src/auth/ 的 token 刷新" |
+| "给 foo.py 加测试" | "给 foo.py 的用户登出场景写测试，不要用 mock" |
+| "这个文件怎么回事" | "解释 src/services/user.ts 第 47 行的认证错误" |
+
+模糊提示迫使 Claude 先搜索、分析、猜测，浪费大量 token。
+
+### 第二梯队：日常好习惯
+
+#### `.claudeignore` 排除无关文件
+
+```
+node_modules/
+build/
+dist/
+*.log
+package-lock.json
+```
+
+#### 精简 CLAUDE.md
+
+每次会话启动都会读取，5,000 tokens 的 CLAUDE.md = 每次交互先被"征税" 5,000 tokens。保持在 2,000 tokens 以内，只放 Claude 无法从代码推断的信息。
+
+#### 用子代理做调研
+
+子代理在独立上下文窗口运行，返回摘要，不污染主会话。
+
+```
+用子代理调查我们的认证系统如何处理 token 刷新
+```
+
+#### 用 `@` 引用文件
+
+```
+看一下 @src/auth/login.ts    # 好：直接引用
+看一下登录相关的代码          # 差：Claude 要先搜索
+```
+
+### 第三梯队：进阶技巧
+
+- **`/rewind` 代替反复纠正**：走错方向时回退检查点，避免在上下文里堆积无效尝试
+- **错峰使用**：美东时间工作日 8AM-2PM 限额更紧，大任务安排在下午/晚上/周末
+- **监控用量**：`/usage` 查看会话和周用量；`claude-hud` 插件实时监控上下文
+- **非交互模式**：`claude -p "运行测试"` 比交互式省 token
+- **`/btw` 侧问**：快速提问不进入对话历史，不增长上下文
+
+### 常见反模式
+
+| 反模式 | 症状 | 解决 |
+| --- | --- | --- |
+| 厨房水槽会话 | 一个会话做多个不相关任务 | `/clear` 隔离任务 |
+| 反复纠正 | 连续纠正 2 次以上 | `/clear` 后用更好的初始提示重来 |
+| CLAUDE.md 过长 | 规则被忽略 | 精简到 2,000 tokens 以内 |
+| 无限探索 | 要求"调查"但不限范围 | 限定范围，或用子代理 |
+| 信任但不验证 | 看起来对但缺少测试 | 提供测试/脚本/截图作为验证 |
+
+### 来源
+
+- [Best Practices - Claude Code Official Docs](https://code.claude.com/docs/en/best-practices)
+- [12 Proven Techniques to Save Tokens - Aslam Doctor](https://aslamdoctor.com/12-proven-techniques-to-save-tokens-in-claude-code/)
+- [Claude Code Token Limits - Faros](https://www.faros.ai/blog/claude-code-token-limits)

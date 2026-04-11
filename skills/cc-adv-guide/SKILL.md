@@ -457,6 +457,13 @@ model: sonnet                     # 可选：haiku / sonnet / opus
 
 完整字段说明见 [reference/skill-guide.md](reference/skill-guide.md)。
 
+### 批量支持决策
+
+创建**文件处理类**技能时，先询问用户是否需要支持批量（多文件）执行：
+
+- 需要批量支持 → 按本文档"Skill 批量执行三层设计模式"实现
+- 不需要 → 只创建单文件 skill 即可
+
 ### 设计要点
 
 - **正文保持 500 行以内**，详细参考移到 `reference/` 子目录
