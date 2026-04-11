@@ -50,7 +50,7 @@ SKILL.md 的 Markdown 正文中可使用以下动态变量：
 
 ## 四、动态上下文注入
 
-在 SKILL.md 正文中用 `` !`command` `` 语法，技能发送给 Claude **之前**先执行 shell 命令，输出直接替换占位符：
+在 SKILL.md 正文中用 `!command` 语法，技能发送给 Claude **之前**先执行 shell 命令，输出直接替换占位符：
 
 ```markdown
 ## 当前上下文

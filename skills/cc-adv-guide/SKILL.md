@@ -202,7 +202,7 @@ permissionMode: bypassPermissions
 - Skill YAML frontmatter 的完整字段列表及各字段含义
 - 字符串替换变量（`$ARGUMENTS`、`${CLAUDE_SKILL_DIR}` 等）
 - 调用控制（`disable-model-invocation` / `user-invocable` 的组合效果）
-- 动态上下文注入（`` !`command` `` 语法）
+- 动态上下文注入（`!command` 语法）
 - description 写法、文件组织、渐进式披露等最佳实践
 - 官方示例（参考知识类、手动触发、工具预授权、子代理 fork、位置参数、脚本捆绑等）
 - 技能存放位置与优先级规则
