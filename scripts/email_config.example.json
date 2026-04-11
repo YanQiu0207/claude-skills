@@ -1,0 +1,13 @@
+{
+    "providers": [
+        {
+            "name": "qq",
+            "enabled": true,
+            "smtp_host": "smtp.qq.com",
+            "smtp_port": 465,
+            "username": "your-qq-number@qq.com",
+            "password": "your-qq-smtp-authorization-code",
+            "sender_name": "Your Name"
+        }
+    ]
+}

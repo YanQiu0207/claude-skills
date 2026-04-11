@@ -4,3 +4,4 @@ __pycache__/
 .githooks/sensitive-patterns
 scripts/sync.log
 .claude/
+scripts/email_config.json

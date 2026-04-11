@@ -1,0 +1,3 @@
+2026-04-11 19:41:11.367 [pid=43412 tid=9704] INFO __main__: 邮件已发送: to=michaeltesla1995@gmail.com subject=今日巡检 provider=qq
+2026-04-11 19:57:21.545 [pid=3304 tid=3704] INFO send_email: 邮件已发送: to=michaeltesla1995@gmail.com subject=今日巡检 provider=qq
+2026-04-11 20:17:54.662 [pid=43568 tid=40080] INFO send_email: 邮件已发送: to=michaeltesla1995@gmail.com subject=今日巡检 provider=qq
