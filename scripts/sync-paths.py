@@ -31,6 +31,9 @@ LOG_FILE = REPO_DIR / "scripts" / "sync.log"
 IGNORED_DIR_NAMES = {"__pycache__"}
 IGNORED_SUFFIXES = {".pyc", ".pyo"}
 
+# 在 Windows 上抑制子进程弹出 CMD 窗口；非 Windows 平台该常量不存在时取 0（无影响）
+_CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+
 
 @dataclass(frozen=True)
 class SyncMapping:
@@ -302,6 +305,7 @@ def update_readme_with_claude(logger: logging.Logger) -> None:
             capture_output=True,
             text=True,
             timeout=300,  # 5分钟超时
+            creationflags=_CREATE_NO_WINDOW,
         )
         if result.returncode == 0:
             logger.info("已通过 Claude Code 更新 README.md")
@@ -316,9 +320,9 @@ def update_readme_with_claude(logger: logging.Logger) -> None:
 
 
 def git_commit_and_push(synced: list[str], deleted: list[str], logger: logging.Logger) -> bool:
-    subprocess.run(["git", "add", "-A"], cwd=REPO_DIR, check=True)
+    subprocess.run(["git", "add", "-A"], cwd=REPO_DIR, check=True, creationflags=_CREATE_NO_WINDOW)
 
-    result = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=REPO_DIR)
+    result = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=REPO_DIR, creationflags=_CREATE_NO_WINDOW)
     if result.returncode == 0:
         return False
 
@@ -326,13 +330,14 @@ def git_commit_and_push(synced: list[str], deleted: list[str], logger: logging.L
     details: list[str] = list(synced)
     details.extend(f"[删除] {item}" for item in deleted)
     message = f"脚本按映射自动同步 {changed} 个文件\n\n" + "\n".join(details)
-    subprocess.run(["git", "commit", "-m", message], cwd=REPO_DIR, check=True)
+    subprocess.run(["git", "commit", "-m", message], cwd=REPO_DIR, check=True, creationflags=_CREATE_NO_WINDOW)
 
     result = subprocess.run(
         ["git", "push"],
         cwd=REPO_DIR,
         capture_output=True,
         text=True,
+        creationflags=_CREATE_NO_WINDOW,
     )
     if result.returncode == 0:
         logger.info("已推送到远程仓库")
