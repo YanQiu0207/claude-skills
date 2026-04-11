@@ -6,7 +6,32 @@ description: |
 user-invocable: false
 ---
 
-# Claude Code 进阶指南：Skills 与 Agents
+# Claude Code 进阶指南
+
+> **维护规则**：保持本文件简洁。大段参考数据应放在 `reference/` 目录下的独立文件中，SKILL.md 中仅保留摘要并注明"当需要了解 XX 时，请读取 [reference/xxx.md]"。本文件的定位是索引 + 核心经验，不是百科全书。
+>
+> **写入审查**：每次向本文件写入新内容前，必须检查：（1）该知识是否有写入的必要（能从代码/文档直接推导的不写）；（2）是否与已有内容重复（重复则合并或更新，不新增）；（3）是否与已有内容冲突（冲突时需找用户确认保留哪个）。
+
+---
+
+## Skill `allowed-tools` 与 Agent `tools` 对比
+
+两者都用于控制工具，但解决的问题层次不同：
+
+| 维度 | Skill `allowed-tools` | Agent `tools` |
+|------|----------------------|---------------|
+| **本质** | 权限预批准（免提示） | 能力白名单（隔离） |
+| **未列出的工具** | 仍可用，需用户批准 | 完全不可用 |
+| **粒度** | 支持参数模式，如 `Bash(git *)` | 同样支持，如 `Bash(npm test *)` |
+| **默认行为** | 无预批准 | 省略则继承所有工具 |
+| **生效范围** | 技能激活期间 | 整个 agent 生命周期 |
+| **互补机制** | 无 | `disallowedTools` 黑名单（优先级高于 `tools`） |
+
+**一句话总结**：`allowed-tools` 是"这些工具不用问我"，`tools` 是"你只能用这些工具"。
+
+各字段的完整说明分别在 [reference/skill-guide.md](reference/skill-guide.md)（`allowed-tools` 字段）和 [reference/agent-guide.md](reference/agent-guide.md)（`tools` / `disallowedTools` 字段）中。
+
+---
 
 ## Agent 工具参数速查
 
@@ -192,6 +217,45 @@ permissionMode: bypassPermissions
 ### 实际案例
 
 `batch-md-fmt`（调度层）→ `md-fmt-worker`（配置层）→ `md-fmt`（执行层）→ `md-img-local`（下游 skill）
+
+---
+
+## Skill 与 Agent 执行时的权限架构总览
+
+Skill 的权限不是单独一套沙箱，而是叠在 Claude Code 的权限系统之上。整体分为 4 层：
+
+### 层级概览
+
+| 层级 | 控制什么 | 机制 |
+|------|---------|------|
+| 调用控制 | skill 能否被触发 | `disable-model-invocation` / `user-invocable` |
+| 工具预授权 | skill 激活后哪些工具免确认 | `allowed-tools`（详见上方对比表） |
+| 全局权限规则 | 工具调用的最终裁决 | `permissions.deny/ask/allow`（settings.json） |
+| Agent 权限 | subagent 中的工具与 skill 可用性 | `tools` / `skills` / `permissionMode` |
+
+### 关键规则
+
+1. **deny 永远优先于 allow**：权限判断顺序是 deny → ask → allow，第一个匹配的规则生效。无法通过"deny 全部 + allow 白名单"实现选择性放行
+2. **`allowed-tools` 是"额外放行器"，不是"限制器"**：未列出的工具仍可用，只是需要用户确认
+3. **subagent 不继承父对话的 skills**：必须在 agent 定义中通过 `skills` 字段显式声明所有依赖（包括下游 skill）
+4. **内置 agent 有预定义的工具集**：Explore/Plan 禁止 Edit/Write（只读），general-purpose 拥有全部工具。不是从父对话"继承"
+
+### 配置来源优先级
+
+1. **Managed**（企业/IT 下发）— 无法被任何其他层级覆盖
+2. **命令行参数** — 临时会话覆盖
+3. **本地项目**（`.claude/settings.local.json`）
+4. **项目共享**（`.claude/settings.json`）
+5. **用户配置**（`~/.claude/settings.json`）
+
+`allowManagedPermissionRulesOnly: true`（仅限 managed settings 设置）可禁止用户和项目自定义权限规则。
+
+### 实用做法
+
+- 危险 skill 加 `disable-model-invocation: true`，防止模型自动触发
+- 知识类 skill 设 `user-invocable: false`
+- 后台 agent 调用 skill 时，在 agent 定义中通过 `skills` 声明所有依赖，并设置 `permissionMode: bypassPermissions`
+- skill 调用链上每层都需有完整的 `allowed-tools` 声明（详见"后台 Agent 调用 Skill 的权限问题"一节）
 
 ---
 
